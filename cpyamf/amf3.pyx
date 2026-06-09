@@ -842,7 +842,7 @@ cdef class Encoder(codec.Encoder):
         str_keys = []
 
         for x in keys:
-            if isinstance(x, (int, long)):
+            if isinstance(x, int):
                 int_keys.append(x)
             elif isinstance(x, (str, unicode)):
                 str_keys.append(x)

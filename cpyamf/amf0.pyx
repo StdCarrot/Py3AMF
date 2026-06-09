@@ -573,7 +573,7 @@ cdef class Encoder(codec.Encoder):
         try:
             # list comprehensions to save the day
             max_index = max([y[0] for y in o.items()
-                if isinstance(y[0], (int, long))])
+                if isinstance(y[0], int)])
 
             if max_index < 0:
                 max_index = 0
