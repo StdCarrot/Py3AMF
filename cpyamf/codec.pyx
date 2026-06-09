@@ -129,7 +129,7 @@ cdef class IndexedCollection(object):
         if p is None:
             return -1
 
-        return <Py_ssize_t>PyInt_AS_LONG(<object>p)
+        return <Py_ssize_t>PyLong_AsSsize_t(<object>p)
 
     cpdef Py_ssize_t append(self, object obj) except -1:
         self._increase_size()
