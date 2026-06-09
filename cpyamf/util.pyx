@@ -17,10 +17,10 @@ cdef extern from "stdio.h":
     int SIZEOF_LONG
 
 cdef extern from "Python.h":
-    int _PyFloat_Pack4(float, unsigned char *, int) except? -1
-    int _PyFloat_Pack8(double, unsigned char *, int) except? -1
-    double _PyFloat_Unpack4(unsigned char *, int) except? -1.0
-    double _PyFloat_Unpack8(unsigned char *, int) except? -1.0
+    int PyFloat_Pack4(float, unsigned char *, int) except? -1
+    int PyFloat_Pack8(double, unsigned char *, int) except? -1
+    double PyFloat_Unpack4(unsigned char *, int) except? -1.0
+    double PyFloat_Unpack8(unsigned char *, int) except? -1.0
 
 
 from pyamf import python
@@ -93,21 +93,21 @@ cdef int build_platform_exceptional_floats() except -1:
 
     if float_broken == 1:
         try:
-            _PyFloat_Unpack8(<unsigned char *>&NaN, not is_big_endian(SYSTEM_ENDIAN))
+            PyFloat_Unpack8(<unsigned char *>&NaN, not is_big_endian(SYSTEM_ENDIAN))
         except:
             raise
         else:
             memcpy(&platform_nan, &system_nan, 8)
 
         try:
-            _PyFloat_Unpack8(<unsigned char *>&PosInf, not is_big_endian(SYSTEM_ENDIAN))
+            PyFloat_Unpack8(<unsigned char *>&PosInf, not is_big_endian(SYSTEM_ENDIAN))
         except:
             raise
         else:
             memcpy(&platform_posinf, &system_posinf, 8)
 
         try:
-            _PyFloat_Unpack8(<unsigned char *>&NegInf, not is_big_endian(SYSTEM_ENDIAN))
+            PyFloat_Unpack8(<unsigned char *>&NegInf, not is_big_endian(SYSTEM_ENDIAN))
         except:
             raise
         else:
@@ -173,7 +173,7 @@ cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) nogil:
 
 
 cdef bint is_broken_float() except -1:
-    cdef double test = _PyFloat_Unpack8(NaN, 0)
+    cdef double test = PyFloat_Unpack8(NaN, 0)
 
     cdef int result
     cdef unsigned char *buf = <unsigned char *>&test
@@ -795,7 +795,7 @@ cdef class cBufferedByteStream(object):
                     if swap_bytes(buf, 8) == -1:
                         PyErr_NoMemory()
 
-        obj[0] = _PyFloat_Unpack8(buf, not is_big_endian(self.endian))
+        obj[0] = PyFloat_Unpack8(buf, not is_big_endian(self.endian))
 
         return 0
 
@@ -841,7 +841,7 @@ cdef class cBufferedByteStream(object):
                                 PyErr_NoMemory()
 
             if done == 0:
-                _PyFloat_Pack8(val, <unsigned char *>buf, not is_big_endian(self.endian))
+                PyFloat_Pack8(val, <unsigned char *>buf, not is_big_endian(self.endian))
 
             self.write(<char *>buf, 8)
         finally:
@@ -858,7 +858,7 @@ cdef class cBufferedByteStream(object):
 
         self.read(&buf, 4)
 
-        x[0] = _PyFloat_Unpack4(<unsigned char *>buf, le)
+        x[0] = PyFloat_Unpack4(<unsigned char *>buf, le)
 
         return 0
 
@@ -878,7 +878,7 @@ cdef class cBufferedByteStream(object):
             PyErr_NoMemory()
 
         try:
-            _PyFloat_Pack4(c, <unsigned char *>buf, le)
+            PyFloat_Pack4(c, <unsigned char *>buf, le)
 
             self.write(<char *>buf, 4)
         finally:
