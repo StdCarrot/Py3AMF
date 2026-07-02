@@ -1,3 +1,4 @@
 # Requirements for running the complete supported test suite.
 -r requirements.txt
+setuptools>=82.0.1
 lxml>=6.1.1
