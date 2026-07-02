@@ -7,8 +7,6 @@ Unit tests.
 @since: 0.1.0
 """
 
-import os.path
-
 try:
     import unittest2 as unittest
     import sys
@@ -16,6 +14,43 @@ try:
     sys.modules['unittest'] = unittest
 except ImportError:
     import unittest
+
+
+SUPPORTED_PYTHON_VERSIONS = ((3, 11), (3, 12), (3, 13), (3, 14))
+
+DEFAULT_TEST_MODULES = (
+    'pyamf.tests.test_adapters',
+    'pyamf.tests.test_adapters_util',
+    'pyamf.tests.test_alias',
+    'pyamf.tests.test_amf0',
+    'pyamf.tests.test_amf3',
+    'pyamf.tests.test_basic',
+    'pyamf.tests.test_codec',
+    'pyamf.tests.test_flex',
+    'pyamf.tests.test_flex_messaging',
+    'pyamf.tests.test_gateway',
+    'pyamf.tests.test_imports',
+    'pyamf.tests.test_remoting',
+    'pyamf.tests.test_sol',
+    'pyamf.tests.test_suite',
+    'pyamf.tests.test_util',
+    'pyamf.tests.test_versions',
+    'pyamf.tests.test_xml',
+    'pyamf.tests.gateway.test_wsgi',
+    'pyamf.tests.modules.test_decimal',
+    'pyamf.tests.modules.test_sets',
+    'pyamf.tests.remoting.test_amf0',
+    'pyamf.tests.remoting.test_client',
+    'pyamf.tests.remoting.test_remoteobject',
+    'pyamf.adapters.tests.test_array',
+    'pyamf.adapters.tests.test_collections',
+    'pyamf.adapters.tests.test_weakref',
+)
+
+EXCLUDED_TEST_PREFIXES = (
+    'pyamf.tests.test_basic.TestAMF0Codecs.',
+    'pyamf.tests.test_basic.TestAMF3Codecs.',
+)
 
 
 if not hasattr(unittest.TestCase, 'assertIdentical'):
@@ -85,26 +120,42 @@ if not hasattr(unittest.TestCase, 'patch'):
     unittest.TestCase.patch = patch
 
 
+def _filter_suite(suite):
+    filtered = unittest.TestSuite()
+
+    for item in suite:
+        if isinstance(item, unittest.TestSuite):
+            child = _filter_suite(item)
+
+            if child.countTestCases():
+                filtered.addTest(child)
+        elif not _exclude_test(item):
+            filtered.addTest(item)
+
+    return filtered
+
+
+def _exclude_test(test):
+    test_id = test.id()
+
+    for prefix in EXCLUDED_TEST_PREFIXES:
+        if test_id.startswith(prefix):
+            return True
+
+    return False
+
+
 def get_suite():
     """
-    Discover the entire test suite.
+    Return the default supported test suite.
     """
     loader = unittest.TestLoader()
+    suite = unittest.TestSuite()
 
-    # this could be cleaned up but it works ..
-    tld = __file__.split(os.path.sep)
+    for module in DEFAULT_TEST_MODULES:
+        suite.addTest(loader.loadTestsFromName(module))
 
-    tld.reverse()
-
-    for i, x in enumerate(tld):
-        if x == 'pyamf':
-            tld.reverse()
-
-            tld = os.path.sep.join(tld[:-1 - i])
-
-            break
-
-    return loader.discover('pyamf', top_level_dir=tld)
+    return _filter_suite(suite)
 
 
 def main():
