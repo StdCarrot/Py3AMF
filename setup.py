@@ -8,7 +8,7 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 8, 12)
+version = (0, 9, 0)
 
 name = "Py3AMF"
 description = "AMF support for Python"
@@ -19,17 +19,12 @@ author_email = "yhbu@stdc.so"
 license = "MIT License"
 
 classifiers = """
-Framework :: Django
-Framework :: Pylons
-Framework :: Twisted
 Intended Audience :: Developers
 Intended Audience :: Information Technology
 License :: OSI Approved :: MIT License
 Natural Language :: English
 Operating System :: OS Independent
-Programming Language :: C
 Programming Language :: Python
-Programming Language :: Cython
 Programming Language :: Python :: 3.11
 Programming Language :: Python :: 3.12
 Programming Language :: Python :: 3.13
@@ -40,8 +35,8 @@ Topic :: Software Development :: Libraries :: Python Modules
 
 keywords = """
 python3 amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
-objectproxy arraycollection recordset actionscript decoder encoder gateway
-remoteobject twisted pylons django sharedobject lso sol
+objectproxy arraycollection recordset actionscript decoder encoder gateway wsgi
+remoteobject sharedobject lso sol
 """
 
 

@@ -25,6 +25,14 @@ def iter_test_ids(suite):
 
 
 class SupportedPythonVersionsTestCase(unittest.TestCase):
+    unsupported_classifiers = (
+        'Framework :: Django',
+        'Framework :: Pylons',
+        'Framework :: Twisted',
+        'Programming Language :: C',
+        'Programming Language :: Cython',
+    )
+
     def get_setup_classifiers(self):
         root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         setup_py = os.path.join(root, 'setup.py')
@@ -41,6 +49,59 @@ class SupportedPythonVersionsTestCase(unittest.TestCase):
                     return ast.literal_eval(node.value)
 
         self.fail('setup.py does not define classifiers')
+
+    def get_setup_version(self):
+        root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        setup_py = os.path.join(root, 'setup.py')
+
+        with open(setup_py, 'r') as fp:
+            tree = ast.parse(fp.read(), setup_py)
+
+        for node in tree.body:
+            if not isinstance(node, ast.Assign):
+                continue
+
+            for target in node.targets:
+                if getattr(target, 'id', None) == 'version':
+                    return ast.literal_eval(node.value)
+
+        self.fail('setup.py does not define version')
+
+    def get_setup_extras(self):
+        root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        setupinfo_py = os.path.join(root, 'setupinfo.py')
+
+        with open(setupinfo_py, 'r') as fp:
+            tree = ast.parse(fp.read(), setupinfo_py)
+
+        for node in tree.body:
+            if not isinstance(node, ast.FunctionDef):
+                continue
+
+            if node.name != 'get_extras_require':
+                continue
+
+            for item in node.body:
+                if isinstance(item, ast.Return):
+                    return ast.literal_eval(item.value)
+
+        self.fail('setupinfo.py does not define get_extras_require')
+
+    def get_setupinfo_function(self, name):
+        root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        setupinfo_py = os.path.join(root, 'setupinfo.py')
+
+        with open(setupinfo_py, 'r') as fp:
+            tree = ast.parse(fp.read(), setupinfo_py)
+
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) and node.name == name:
+                return node
+
+        self.fail('setupinfo.py does not define %s' % (name,))
+
+    def test_setup_version(self):
+        self.assertEqual(self.get_setup_version(), (0, 9, 0))
 
     def test_supported_versions(self):
         self.assertEqual(
@@ -62,6 +123,37 @@ class SupportedPythonVersionsTestCase(unittest.TestCase):
         ]
 
         self.assertEqual(classifiers, supported)
+
+    def test_setup_classifiers_exclude_unsupported_surfaces(self):
+        classifiers = set(
+            classifier.strip()
+            for classifier in self.get_setup_classifiers().strip().split('\n')
+            if classifier.strip()
+        )
+
+        for classifier in self.unsupported_classifiers:
+            self.assertNotIn(classifier, classifiers)
+
+    def test_setup_extras_exclude_unsupported_integrations(self):
+        self.assertEqual(
+            set(self.get_setup_extras()),
+            set(['lxml'])
+        )
+
+    def test_setup_extensions_are_disabled(self):
+        get_extensions = self.get_setupinfo_function('get_extensions')
+
+        returns = [
+            node for node in get_extensions.body
+            if isinstance(node, ast.Return)
+        ]
+
+        self.assertEqual(len(returns), 1)
+        self.assertEqual(ast.literal_eval(returns[0].value), [])
+
+        for node in ast.walk(get_extensions):
+            if isinstance(node, ast.Constant):
+                self.assertNotEqual(node.value, '*.pyx')
 
 
 class DefaultSuiteTestCase(unittest.TestCase):

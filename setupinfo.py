@@ -134,12 +134,7 @@ def get_version():
 
 def get_extras_require():
     return {
-        'twisted': ['Twisted>=16.0.0'],
-        'django': ['Django>=0.96'],
-        'sqlalchemy': ['SQLAlchemy>=0.4'],
-        'elixir': ['Elixir>=0.7.1'],
-        'lxml': ['lxml>=6.1.1'],
-        'six': ['six>=1.10.0']
+        'lxml': ['lxml>=6.1.1']
     }
 
 
@@ -173,10 +168,6 @@ def get_install_requirements():
     target platform.
     """
     install_requires = ['defusedxml>=0.7.1']
-
-    if 'dev' in get_version():
-        if can_compile_extensions:
-            install_requires.extend(['Cython>=0.28'])
 
     return install_requires
 
@@ -240,33 +231,13 @@ def read(fname):
 
 def get_extensions():
     """
-    Return a list of Extension instances that can be compiled.
+    Return extension modules to build.
+
+    C extension builds are intentionally disabled for the supported 0.9.0
+    runtime surface. The Cython sources remain in the tree for reference and
+    compatibility, but installs should always use the pure Python path.
     """
-    if not can_compile_extensions:
-        # due to changes in pip these prints have no effect
-        print(80 * '*')
-        print('WARNING:')
-        print(
-            '\tAn optional code optimization (C extension) could not be '
-            'compiled.\n\n'
-        )
-        print('\tOptimizations for this package will not be available!\n\n')
-        print('Compiling extensions is not supported on %r' % (sys.platform,))
-        print(80 * '*')
-
-        return []
-
-    extensions = []
-
-    for p in recursive_glob('.', '*.pyx'):
-        mod_name = os.path.splitext(p)[0].replace(os.path.sep, '.')
-
-        e = make_extension(mod_name)
-
-        if e:
-            extensions.append(e)
-
-    return extensions
+    return []
 
 
 def get_trove_classifiers():
