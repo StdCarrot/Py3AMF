@@ -11,7 +11,9 @@ Current support
 
 The 0.9.0 release line keeps the supported surface small and focused:
 
-- CPython 3.11, 3.12, 3.13, and 3.14 are tested.
+- CPython 3.11, 3.12, 3.13, and 3.14 are tested with the
+  ``python:3.11-slim``, ``python:3.12-slim``, ``python:3.13-slim``, and
+  ``python:3.14-slim`` container images.
 - Older Python 3 versions are not intentionally blocked, but they are not
   part of the active test matrix.
 - AMF0, AMF3, core remoting, the WSGI gateway, and pure Python runtime
