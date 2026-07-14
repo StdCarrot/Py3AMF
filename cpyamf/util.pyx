@@ -815,6 +815,30 @@ cdef class cBufferedByteStream(object):
         if buf == NULL:
             PyErr_NoMemory()
 
+        if python.isNaN(val):
+            if is_big_endian(self.endian):
+                cBufferedByteStream.write(self, <char *>b'\xff\xf8\x00\x00\x00\x00\x00\x00', 8)
+            else:
+                cBufferedByteStream.write(self, <char *>b'\x00\x00\x00\x00\x00\x00\xf8\xff', 8)
+
+            return 0
+
+        if python.isNegInf(val):
+            if is_big_endian(self.endian):
+                cBufferedByteStream.write(self, <char *>b'\xff\xf0\x00\x00\x00\x00\x00\x00', 8)
+            else:
+                cBufferedByteStream.write(self, <char *>b'\x00\x00\x00\x00\x00\x00\xf0\xff', 8)
+
+            return 0
+
+        if python.isPosInf(val):
+            if is_big_endian(self.endian):
+                cBufferedByteStream.write(self, <char *>b'\x7f\xf0\x00\x00\x00\x00\x00\x00', 8)
+            else:
+                cBufferedByteStream.write(self, <char *>b'\x00\x00\x00\x00\x00\x00\xf0\x7f', 8)
+
+            return 0
+
         try:
             if float_broken == 1:
                 if memcmp(&val, &system_nan, 8) == 0:
