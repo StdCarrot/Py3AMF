@@ -807,13 +807,7 @@ cdef class cBufferedByteStream(object):
         @type val: C{float}
         """
         cdef unsigned char *buf
-        cdef unsigned char *foo
         cdef int done = 0
-
-        buf = <unsigned char *>malloc(sizeof(double))
-
-        if buf == NULL:
-            PyErr_NoMemory()
 
         if python.isNaN(val):
             if is_big_endian(self.endian):
@@ -838,6 +832,11 @@ cdef class cBufferedByteStream(object):
                 cBufferedByteStream.write(self, <char *>b'\x00\x00\x00\x00\x00\x00\xf0\x7f', 8)
 
             return 0
+
+        buf = <unsigned char *>malloc(sizeof(double))
+
+        if buf == NULL:
+            PyErr_NoMemory()
 
         try:
             if float_broken == 1:
