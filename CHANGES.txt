@@ -5,6 +5,28 @@ This document contains information about the changes between the different
 versions of Py3AMF.
 
 .. contents::
+
+0.9.1 (Unreleased)
+------------------
+- Restore optional Cython extension support for CPython while keeping the pure
+  Python runtime as the default installation.
+- Add an explicit Cython source-build path for requirements files using
+  ``--no-binary Py3AMF`` and
+  ``Py3AMF==0.9.1 --config-settings=py3amf.ext.cython=1``. Cython is added to
+  the isolated build environment only for this opt-in path, and a requested
+  extension build fails instead of falling back to pure Python when its
+  compiler requirements are unavailable.
+- Make Cython encoding of NaN, positive infinity, and negative infinity match
+  the pure Python protocol bytes, and fix a temporary buffer memory leak in
+  the exceptional floating-point path.
+- Align additional Cython behavior with the pure Python runtime by honoring
+  ``amf3.use_proxies_default`` in the AMF3 decoder and using explicitly signed
+  bytes for ``read_char`` and ``write_char`` on every platform.
+- Add a CPython 3.11 through 3.14 Cython CI matrix that verifies failure
+  without gcc, builds and installs the binary wheel with gcc, checks all four
+  ``cpyamf`` modules, and runs the supported test suite with the Cython codecs
+  injected in place of the pure codecs.
+
 0.9.0 (2026-07-03)
 ------------------
 - Test CPython 3.11 through 3.14 while keeping installation open for older
