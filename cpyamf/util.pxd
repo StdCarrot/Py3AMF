@@ -34,7 +34,7 @@ cdef class cBufferedByteStream:
     cdef int pack_int(self, int num_bytes, long x) except -1
     cdef int pack_uint(self, int num_bytes, unsigned long x) except -1
     cpdef unsigned char read_uchar(self) except? 0
-    cpdef char read_char(self) except? 0
+    cpdef signed char read_char(self) except? 0
     cpdef unsigned short read_ushort(self) except? 0
     cpdef short read_short(self) except? 0
     cpdef unsigned long read_24bit_uint(self) except? 0
@@ -42,7 +42,7 @@ cdef class cBufferedByteStream:
     cpdef unsigned long read_ulong(self) except? 0
     cpdef long read_long(self) except? 0
     cpdef int write_uchar(self, unsigned char ret) except -1
-    cpdef int write_char(self, char ret) except -1
+    cpdef int write_char(self, signed char ret) except -1
     cpdef int write_ushort(self, unsigned short ret) except -1
     cpdef int write_short(self, short ret) except -1
     cpdef int write_24bit_uint(self, unsigned long ret) except -1

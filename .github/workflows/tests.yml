@@ -107,3 +107,86 @@ jobs:
           import pyamf.tests
           pyamf.tests.main()
           PY
+
+  cython-tests:
+    name: Cython Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.container-image }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.11"
+            container-image: python:3.11-slim
+          - python-version: "3.12"
+            container-image: python:3.12-slim
+          - python-version: "3.13"
+            container-image: python:3.13-slim
+          - python-version: "3.14"
+            container-image: python:3.14-slim
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Reject Cython build without gcc
+        shell: bash
+        run: |
+          if command -v gcc; then
+            echo "gcc is unexpectedly available"
+            exit 1
+          fi
+
+          rm -rf /tmp/py3amf-no-gcc
+          mkdir -p /tmp/py3amf-no-gcc
+
+          set +e
+          python -m pip wheel . \
+            --no-deps \
+            --no-cache-dir \
+            --config-settings=py3amf.ext.cython=1 \
+            --wheel-dir /tmp/py3amf-no-gcc \
+            >/tmp/py3amf-no-gcc.log 2>&1
+          status=$?
+          set -e
+
+          cat /tmp/py3amf-no-gcc.log
+          test "$status" -ne 0
+          grep -F \
+            "Cython extension build was requested, but CPython, Cython, and gcc are required" \
+            /tmp/py3amf-no-gcc.log
+
+      - name: Install gcc toolchain
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install \
+            -y --no-install-recommends gcc libc6-dev
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Build Cython wheel
+        run: |
+          rm -rf /tmp/py3amf-cython-dist
+          mkdir -p /tmp/py3amf-cython-dist
+          python -m pip wheel . \
+            --no-deps \
+            --no-cache-dir \
+            --config-settings=py3amf.ext.cython=1 \
+            --wheel-dir /tmp/py3amf-cython-dist
+
+      - name: Test installed Cython wheel
+        shell: bash
+        run: |
+          python -m venv /tmp/py3amf-cython
+          /tmp/py3amf-cython/bin/python -m pip install --upgrade pip
+          /tmp/py3amf-cython/bin/python -m pip install \
+            /tmp/py3amf-cython-dist/*.whl
+          /tmp/py3amf-cython/bin/python -m pip install \
+            -r test-requirements.txt
+          cd /tmp
+          PYTHONPATH= /tmp/py3amf-cython/bin/python -m pyamf.tests.cython

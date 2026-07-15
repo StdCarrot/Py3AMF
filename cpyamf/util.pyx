@@ -563,11 +563,11 @@ cdef class cBufferedByteStream(object):
 
         return ch
 
-    cpdef char read_char(self) except? 0:
+    cpdef signed char read_char(self) except? 0:
         """
-        Reads a C{char} from the stream.
+        Reads a signed C{char} from the stream.
         """
-        cdef char ch = 0
+        cdef signed char ch = 0
 
         self.unpack_int(1, &ch)
 
@@ -648,9 +648,9 @@ cdef class cBufferedByteStream(object):
         """
         return self.pack_uint(1, <unsigned long>ret)
 
-    cpdef int write_char(self, char ret) except -1:
+    cpdef int write_char(self, signed char ret) except -1:
         """
-        Write a C{char} to the stream.
+        Write a signed C{char} to the stream.
 
         @param ret: char
         @type ret: C{int}
@@ -1044,7 +1044,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if PyLong_Check(x) == 0:
             raise TypeError('expected int for x')
 
-        cBufferedByteStream.write_char(self, <char>x)
+        cBufferedByteStream.write_char(self, <signed char>x)
 
     def write_ushort(self, x):
         """

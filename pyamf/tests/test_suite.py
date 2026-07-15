@@ -12,6 +12,7 @@ import subprocess
 import sys
 import textwrap
 import tomllib
+import types
 import unittest
 
 import pyamf.tests
@@ -412,6 +413,59 @@ class DefaultSuiteTestCase(unittest.TestCase):
                 for test_id in test_ids
             )
         )
+
+
+class CythonSuiteTestCase(unittest.TestCase):
+    def test_inject_extension_codecs_replaces_only_codec_classes(self):
+        from pyamf.tests import cython
+
+        pure_modules = {
+            name: types.ModuleType('pyamf.' + name)
+            for name in ('amf0', 'amf3')
+        }
+        extension_modules = {
+            name: types.ModuleType('cpyamf.' + name)
+            for name in ('amf0', 'amf3')
+        }
+        modules = {}
+
+        for name in ('amf0', 'amf3'):
+            pure_modules[name].Encoder = object()
+            pure_modules[name].Decoder = object()
+            pure_modules[name].public_api = object()
+            extension_modules[name].Encoder = object()
+            extension_modules[name].Decoder = object()
+            modules['pyamf.' + name] = pure_modules[name]
+            modules['cpyamf.' + name] = extension_modules[name]
+
+        consumer = types.SimpleNamespace(
+            amf0=pure_modules['amf0'],
+            amf3=pure_modules['amf3'],
+        )
+        pure_classes = {
+            name: (module.Encoder, module.Decoder)
+            for name, module in pure_modules.items()
+        }
+        self.patch('cython.importlib.import_module', modules.__getitem__)
+
+        loaded = cython.inject_extension_codecs([consumer])
+
+        self.assertEqual(loaded, extension_modules)
+
+        for name, module in pure_modules.items():
+            injected = getattr(consumer, name)
+
+            self.assertIs(
+                injected.Encoder, extension_modules[name].Encoder)
+            self.assertIs(
+                injected.Decoder, extension_modules[name].Decoder)
+            self.assertIs(injected.public_api, module.public_api)
+            self.assertEqual(
+                (module.Encoder, module.Decoder), pure_classes[name])
+
+            changed_value = object()
+            injected.public_api = changed_value
+            self.assertIs(module.public_api, changed_value)
 
 
 class TutorialDocumentationTestCase(unittest.TestCase):

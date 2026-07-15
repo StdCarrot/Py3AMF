@@ -253,6 +253,8 @@ cdef class Decoder(codec.Decoder):
     """
 
     def __init__(self, *args, **kwargs):
+        self.use_proxies = kwargs.pop(
+            'use_proxies', amf3.use_proxies_default)
         context = kwargs.pop('context', None)
 
         if context is None:
