@@ -9,7 +9,7 @@ for Python applications.
 Current support
 ~~~~~~~~~~~~~~~
 
-The 0.9.0 release line keeps the supported surface small and focused:
+The current release line keeps the supported surface small and focused:
 
 - CPython 3.11, 3.12, 3.13, and 3.14 are tested with the
   ``python:3.11-slim``, ``python:3.12-slim``, ``python:3.13-slim``, and
@@ -20,9 +20,10 @@ The 0.9.0 release line keeps the supported surface small and focused:
   code are supported.
 - ``pyamf.adapters`` remains available as helper and compatibility
   modules.
-- Jython, Cython extension builds, framework gateways, and automatic
-  conversion of third-party framework models are no longer officially
-  supported.
+- Cython extension builds are available as an explicit source-build option.
+  Default installs use the pure Python runtime.
+- Jython, framework gateways, and automatic conversion of third-party
+  framework models are no longer officially supported.
 
 Applications should convert framework-specific objects at the application
 layer before passing data to Py3AMF.
@@ -35,6 +36,33 @@ Install the released package with pip:
 ::
 
    python -m pip install Py3AMF
+
+To compile the optional Cython extensions, use these lines in a requirements.txt
+file:
+
+::
+
+   --no-binary Py3AMF
+   Py3AMF==0.9.1 --config-settings=py3amf.ext.cython=1
+
+The ``Py3AMF[cython]`` extra is not used because extras select optional install
+dependencies, not a new wheel build variant.
+``--config-settings`` passes the build request directly to the backend.
+
+Each part has a separate role:
+
+``--no-binary Py3AMF``
+   Tells pip not to select a prebuilt wheel for Py3AMF. Pip selects the source
+   distribution instead and runs the local PEP 517 wheel build.
+
+``--config-settings=py3amf.ext.cython=1``
+   Passes the opt-in value to the Py3AMF build backend for this requirement.
+   The backend adds Cython to the isolated build environment and enables the
+   ``cpyamf`` extension modules.
+
+Pip may reuse a compatible wheel that it built previously. Use
+``python -m pip install --no-cache-dir -r requirements.txt`` when a clean source
+rebuild is required.
 
 For local development:
 

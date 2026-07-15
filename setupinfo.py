@@ -208,12 +208,16 @@ def get_extensions():
     """
     Return extension modules to build.
 
-    C extension builds are intentionally disabled for the supported 0.9.0
-    runtime surface. The Cython sources remain in the tree for reference and
-    compatibility, but installs should always use the pure Python path.
+    Builds use the pure Python path unless the PEP 517 backend explicitly
+    enables the optional Cython extensions.
     """
-    if not can_compile_extensions():
+    if os.environ.get('PY3AMF_BUILD_CYTHON') != '1':
         return []
+
+    if not can_compile_extensions():
+        raise RuntimeError(
+            'Cython extension build was requested, but CPython, Cython, '
+            'and gcc are required')
 
     extensions = [
         Extension(

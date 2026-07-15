@@ -3,6 +3,7 @@ graft pyamf/tests/imports
 prune doc/build
 prune doc/_build
 include setupinfo.py
+include py3amf_build_backend.py
 include *.txt
 global-exclude *.md
 global-exclude *.swf
