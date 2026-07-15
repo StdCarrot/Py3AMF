@@ -352,7 +352,7 @@ cdef class Decoder(codec.Decoder):
         size >>= 1
         key = self.readString()
 
-        if PyUnicode_GetSize(key) == 0:
+        if len(key) == 0:
             # integer indexes only -> python list
             result = []
             self.context.addObject(result)
@@ -365,7 +365,7 @@ cdef class Decoder(codec.Decoder):
         tmp = pyamf.MixedArray()
         self.context.addObject(tmp)
 
-        while PyUnicode_GetSize(key):
+        while len(key):
             tmp[key] = self.readElement()
             key = self.readString()
 
@@ -388,7 +388,7 @@ cdef class Decoder(codec.Decoder):
         cdef object alias = None
         cdef Py_ssize_t i
 
-        if PyUnicode_GET_SIZE(name) == 0:
+        if PyUnicode_GET_LENGTH(name) == 0:
             name = pyamf.ASObject
 
         try:
@@ -633,7 +633,7 @@ cdef class Encoder(codec.Encoder):
         cdef bint is_unicode = 0
 
         if PyUnicode_Check(u):
-            l = PyUnicode_GET_SIZE(u)
+            l = PyUnicode_GET_LENGTH(u)
             is_unicode = 1
         elif PyBytes_Check(u):
             l = PyBytes_GET_SIZE(u)
@@ -809,7 +809,8 @@ cdef class Encoder(codec.Encoder):
             self.stream.write(&REF_CHAR, 1)
 
         for key, value in obj.items():
-            if PyInt_Check(key) or PyLong_Check(key):
+            # if PyInt_Check(key) or PyLong_Check(key):
+            if PyLong_Check(key):
                 key = str(key)
 
             self.serialiseString(key)
@@ -842,7 +843,7 @@ cdef class Encoder(codec.Encoder):
         str_keys = []
 
         for x in keys:
-            if isinstance(x, (int, long)):
+            if isinstance(x, int):
                 int_keys.append(x)
             elif isinstance(x, (str, unicode)):
                 str_keys.append(x)

@@ -8,8 +8,10 @@ Meta data and helper functions for setup
 import fnmatch
 import os.path
 import platform
+import shutil
 
 try:
+    from Cython.Build import cythonize
     from Cython.Distutils import build_ext
 
     have_cython = True
@@ -24,8 +26,6 @@ from setuptools import Distribution, Extension
 
 
 _version = None
-
-can_compile_extensions = platform.python_implementation() == "CPython"
 
 
 class MyDistribution(Distribution):
@@ -77,10 +77,10 @@ class MySDist(sdist.sdist):
         ext.initialize_options()
         ext.finalize_options()
 
+        # extend sources with the transpiled C sources
         ext.check_extensions_list(ext.extensions)
-
-        for e in ext.extensions:
-            e.sources = ext.cython_sources(e.sources, e)
+        cythonized = cythonize(ext.extensions)
+        ext.extensions += cythonized
 
     def run(self):
         if self.distribution.ext_modules and not have_cython:
@@ -212,7 +212,37 @@ def get_extensions():
     runtime surface. The Cython sources remain in the tree for reference and
     compatibility, but installs should always use the pure Python path.
     """
-    return []
+    if not can_compile_extensions():
+        return []
+
+    extensions = [
+        Extension(
+            name="cpyamf.amf0",
+            sources=["cpyamf/amf0.pyx"]
+        ),
+        Extension(
+            name="cpyamf.amf3",
+            sources=["cpyamf/amf3.pyx"]
+        ),
+        Extension(
+            name="cpyamf.codec",
+            sources=["cpyamf/codec.pyx"]
+        ),
+        Extension(
+            name="cpyamf.util",
+            sources=["cpyamf/util.pyx"]
+        ),
+    ]
+
+    return extensions
+
+
+def can_compile_extensions():
+    return (
+            platform.python_implementation() == "CPython"
+            and have_cython
+            and shutil.which("gcc") is not None
+    )
 
 
 def get_trove_classifiers():

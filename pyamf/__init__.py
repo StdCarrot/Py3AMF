@@ -13,6 +13,8 @@ is compatible with the Adobe U{Flash Player
 
 import inspect
 
+import importlib
+
 from pyamf import util, _version
 from pyamf.adapters import register_adapters, get_adapter
 from pyamf import python
@@ -484,15 +486,13 @@ def _get_amf_module(version, use_ext=None):
     if use_ext is None:
         # try to use the extension but fallback gracefully
         try:
-            module = __import__('cpyamf.' + module_name)
+            return importlib.import_module('cpyamf.' + module_name)
         except ImportError:
-            module = __import__('pyamf.' + module_name)
+            return importlib.import_module('pyamf.' + module_name)
     elif not use_ext:
-        module = __import__('pyamf.' + module_name)
+        return importlib.import_module('pyamf.' + module_name)
     else:
-        module = __import__('cpyamf.' + module_name)
-
-    return getattr(module, module_name)
+        return importlib.import_module('cpyamf.' + module_name)
 
 
 def get_decoder(encoding, *args, **kwargs):
