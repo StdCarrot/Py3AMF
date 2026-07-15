@@ -6,7 +6,7 @@ versions of Py3AMF.
 
 .. contents::
 
-0.9.1 (Unreleased)
+0.9.1 (2026-07-15)
 ------------------
 - Restore optional Cython extension support for CPython while keeping the pure
   Python runtime as the default installation.
