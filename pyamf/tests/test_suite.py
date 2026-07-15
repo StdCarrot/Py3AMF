@@ -153,7 +153,7 @@ class SupportedPythonVersionsTestCase(unittest.TestCase):
             return tomllib.load(fp)
 
     def test_setup_version(self):
-        self.assertEqual(self.get_setup_version(), (0, 9, 0))
+        self.assertEqual(self.get_setup_version(), (0, 9, 1))
 
     def test_supported_versions(self):
         self.assertEqual(
